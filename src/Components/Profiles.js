@@ -1,0 +1,126 @@
+import React, { useEffect, useState } from "react";
+import "./Profiles.css";
+import { API_URL } from "../config";
+
+const Profiles = ({ loggedInUser, onlineUsers, onStartMessage }) => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/users`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError("Failed to load profiles");
+          return;
+        }
+
+        setUsers(data);
+      } catch (err) {
+        console.error(err);
+        setError("Server error, please try again later");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="profiles-section">
+        <div className="profiles-container">
+          <p className="profiles-status">Loading profiles...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="profiles-section">
+        <div className="profiles-container">
+          <p className="profiles-status">{error}</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <section className="profiles-section">
+        <div className="profiles-container">
+          <p className="profiles-status">No profiles yet. Be the first to join 💕</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="profiles-section">
+      <div className="profiles-container">
+        <h2 className="profiles-heading">💕 Explore Profiles</h2>
+
+        <div className="profiles-grid">
+          {users.map((user) => {
+            const isOwnProfile = loggedInUser && loggedInUser.id === user._id;
+            const isOnline = onlineUsers.includes(user._id);
+
+            return (
+              <div className="profile-card" key={user._id}>
+                <div className="profile-photo-wrapper">
+                  {user.photo ? (
+                    <img
+                      src={`${API_URL}${user.photo}`}
+                      alt={user.fullname}
+                      className="profile-photo"
+                    />
+                  ) : (
+                    <div className="profile-photo placeholder">
+                      {user.fullname.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  {isOnline && <span className="online-dot"></span>}
+                </div>
+
+                <div className="profile-info">
+                  <h4>{user.fullname}</h4>
+                  <p className="profile-username">@{user.username}</p>
+
+                  {user.hobbies && user.hobbies.length > 0 && (
+                    <div className="profile-hobbies">
+                      {user.hobbies.map((hobby) => (
+                        <span className="hobby-tag" key={hobby}>
+                          {hobby}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {isOwnProfile ? (
+                    <button className="start-message-btn own-profile-btn" disabled>
+                      This is you
+                    </button>
+                  ) : (
+                    <button
+                      className="start-message-btn"
+                      onClick={() => onStartMessage(user)}
+                    >
+                      💬 Start Messaging
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Profiles;
