@@ -8,9 +8,27 @@ const EMOJIS = [
   "😎", "🤔", "👍", "🎉", "😅", "💋", "🌸", "☺️",
 ];
 
+const MESSAGE_LIFETIME_MS = 10 * 60 * 1000; // 10 minutes
+
 const formatTime = (isoString) => {
   const date = new Date(isoString);
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
+
+const formatRelative = (isoString) => {
+  if (!isoString) return "";
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 1) return "just now";
+  if (diffMin === 1) return "1 min ago";
+  if (diffMin < 60) return `${diffMin} min ago`;
+
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr === 1) return "1 hour ago";
+  if (diffHr < 24) return `${diffHr} hours ago`;
+
+  return "a while ago";
 };
 
 const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
@@ -18,6 +36,8 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isBlurred, setIsBlurred] = useState(false);
+  const [, forceTick] = useState(0);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -43,6 +63,11 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
 
   useEffect(() => {
     if (!socket) return;
+    socket.emit("markSeen", { senderId: chatUser._id, receiverId: loggedInUser.id });
+  }, [socket, chatUser._id, loggedInUser.id, messages.length]);
+
+  useEffect(() => {
+    if (!socket) return;
 
     const handleIncoming = (message) => {
       if (
@@ -50,19 +75,66 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
         message.receiver === loggedInUser.id
       ) {
         setMessages((prev) => [...prev, message]);
+        socket.emit("markSeen", { senderId: chatUser._id, receiverId: loggedInUser.id });
+      }
+    };
+
+    const handleSeen = ({ by }) => {
+      if (by === chatUser._id) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.sender === loggedInUser.id
+              ? { ...m, seen: true, seenAt: new Date().toISOString() }
+              : m
+          )
+        );
       }
     };
 
     socket.on("getMessage", handleIncoming);
+    socket.on("messagesSeen", handleSeen);
 
     return () => {
       socket.off("getMessage", handleIncoming);
+      socket.off("messagesSeen", handleSeen);
     };
   }, [socket, chatUser._id, loggedInUser.id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Client-side cleanup mirroring the server's 10-minute auto-delete
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessages((prev) =>
+        prev.filter(
+          (m) => Date.now() - new Date(m.createdAt).getTime() < MESSAGE_LIFETIME_MS
+        )
+      );
+      forceTick((t) => t + 1);
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Screenshot deterrent only — browsers cannot truly block OS-level
+  // screenshots. This just blurs the chat when the window loses focus.
+  useEffect(() => {
+    const handleBlur = () => setIsBlurred(true);
+    const handleFocus = () => setIsBlurred(false);
+    const handleVisibility = () => setIsBlurred(document.hidden);
+
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
 
   const handleSend = (e) => {
     e.preventDefault();
@@ -83,6 +155,7 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
         receiver: chatUser._id,
         text: text.trim(),
         createdAt: new Date().toISOString(),
+        seen: false,
       },
     ]);
 
@@ -95,8 +168,19 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
     inputRef.current?.focus();
   };
 
+  const statusText = isOnline
+    ? "Active now"
+    : chatUser.lastSeen
+    ? `Last seen ${formatRelative(chatUser.lastSeen)}`
+    : "Offline";
+
+  const lastSentIndex = [...messages]
+    .map((m, i) => ({ ...m, i }))
+    .reverse()
+    .find((m) => m.sender === loggedInUser.id)?.i;
+
   return (
-    <div className="chat-page">
+    <div className="chat-page" onContextMenu={(e) => e.preventDefault()}>
       <div className="chat-bg-heart bg-heart1">💕</div>
       <div className="chat-bg-heart bg-heart2">❤️</div>
       <div className="chat-bg-heart bg-heart3">💗</div>
@@ -121,44 +205,53 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
         <div className="chat-header-info">
           <h4>{chatUser.fullname}</h4>
           <span className={`chat-status ${isOnline ? "online" : "offline"}`}>
-            {isOnline ? "Active now" : "Offline"}
+            {statusText}
           </span>
         </div>
 
         <div className="chat-header-icon">💌</div>
       </div>
 
-      <div className="chat-messages">
-        {loading ? (
-          <p className="chat-status-text">Loading messages...</p>
-        ) : messages.length === 0 ? (
-          <div className="chat-empty-state">
-            <span className="chat-empty-emoji">💘</span>
-            <p>Say hi to {chatUser.fullname}!</p>
-          </div>
-        ) : (
-          messages.map((msg, index) => (
-            <div
-              key={msg._id || index}
-              className={`chat-bubble-row ${
-                msg.sender === loggedInUser.id ? "sent-row" : "received-row"
-              }`}
-            >
+      <div className={`chat-body-wrap ${isBlurred ? "blurred" : ""}`}>
+        <div className="chat-messages">
+          {loading ? (
+            <p className="chat-status-text">Loading messages...</p>
+          ) : messages.length === 0 ? (
+            <div className="chat-empty-state">
+              <span className="chat-empty-emoji">💘</span>
+              <p>Say hi to {chatUser.fullname}!</p>
+            </div>
+          ) : (
+            messages.map((msg, index) => (
               <div
-                className={`chat-bubble ${
-                  msg.sender === loggedInUser.id ? "sent" : "received"
+                key={msg._id || index}
+                className={`chat-bubble-row ${
+                  msg.sender === loggedInUser.id ? "sent-row" : "received-row"
                 }`}
               >
-                <p>{msg.text}</p>
-                <span className="chat-bubble-time">
-                  {formatTime(msg.createdAt)}
-                </span>
+                <div
+                  className={`chat-bubble ${
+                    msg.sender === loggedInUser.id ? "sent" : "received"
+                  }`}
+                >
+                  <p>{msg.text}</p>
+                  <span className="chat-bubble-time">
+                    {formatTime(msg.createdAt)}
+                  </span>
+                </div>
+                {msg.sender === loggedInUser.id && index === lastSentIndex && (
+                  <span className="seen-text">
+                    {msg.seen ? `Seen ${formatRelative(msg.seenAt)}` : "Delivered"}
+                  </span>
+                )}
               </div>
-            </div>
-          ))
-        )}
-        <div ref={messagesEndRef} />
+            ))
+          )}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
+
+      {isBlurred && <div className="screenshot-warning">🚫 Content hidden</div>}
 
       {showEmojiPicker && (
         <div className="emoji-picker">
