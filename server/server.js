@@ -7,6 +7,7 @@ const { Server } = require("socket.io");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const friendRoutes = require("./routes/friendRoutes");
 const Message = require("./models/Message");
 
 dotenv.config();
@@ -29,11 +30,16 @@ app.get("/", (req, res) => {
   res.send("Love Chat Backend Running...");
 });
 
-app.use("/api/users", userRoutes);
-app.use("/api/messages", messageRoutes);
-
 // Track online users: { userId: socketId }
 let onlineUsers = {};
+
+// Make io and onlineUsers available inside REST controllers
+app.set("io", io);
+app.set("onlineUsers", onlineUsers);
+
+app.use("/api/users", userRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/requests", friendRoutes);
 
 io.on("connection", (socket) => {
   socket.on("addUser", (userId) => {
