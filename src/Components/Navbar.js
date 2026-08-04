@@ -57,7 +57,7 @@ const Navbar = ({
                 </a>
               </li>
 
-              <li className="nav-item">
+              <li className="nav-item d-none">
                 <a
                   className={`nav-link ${activeView === "profiles" ? "active" : ""}`}
                   href="#profiles"
