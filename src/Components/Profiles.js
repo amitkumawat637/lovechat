@@ -2,7 +2,14 @@ import React, { useEffect, useState } from "react";
 import "./Profiles.css";
 import { API_URL } from "../config";
 
-const Profiles = ({ loggedInUser, onlineUsers, onStartMessage }) => {
+const Profiles = ({
+  loggedInUser,
+  onlineUsers,
+  friendRequests,
+  onStartMessage,
+  onSendRequest,
+  onAcceptRequest,
+}) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -29,6 +36,28 @@ const Profiles = ({ loggedInUser, onlineUsers, onStartMessage }) => {
 
     fetchUsers();
   }, []);
+
+  const getRequestStatus = (otherUserId) => {
+    if (!loggedInUser) return { status: "none" };
+
+    const request = friendRequests.find(
+      (r) =>
+        (r.from._id === loggedInUser.id && r.to._id === otherUserId) ||
+        (r.from._id === otherUserId && r.to._id === loggedInUser.id)
+    );
+
+    if (!request) return { status: "none" };
+
+    if (request.status === "accepted") {
+      return { status: "accepted", request };
+    }
+
+    if (request.from._id === loggedInUser.id) {
+      return { status: "pending_sent", request };
+    }
+
+    return { status: "pending_received", request };
+  };
 
   if (loading) {
     return (
@@ -69,6 +98,7 @@ const Profiles = ({ loggedInUser, onlineUsers, onStartMessage }) => {
           {users.map((user) => {
             const isOwnProfile = loggedInUser && loggedInUser.id === user._id;
             const isOnline = onlineUsers.includes(user._id);
+            const { status, request } = getRequestStatus(user._id);
 
             return (
               <div className="profile-card" key={user._id}>
@@ -104,6 +134,24 @@ const Profiles = ({ loggedInUser, onlineUsers, onStartMessage }) => {
                   {isOwnProfile ? (
                     <button className="start-message-btn own-profile-btn" disabled>
                       This is you
+                    </button>
+                  ) : status === "none" ? (
+                    <button
+                      className="start-message-btn"
+                      onClick={() => onSendRequest(user)}
+                    >
+                      🔔 Follow Request
+                    </button>
+                  ) : status === "pending_sent" ? (
+                    <button className="start-message-btn requested-btn" disabled>
+                      ⏳ Requested
+                    </button>
+                  ) : status === "pending_received" ? (
+                    <button
+                      className="start-message-btn accept-btn"
+                      onClick={() => onAcceptRequest(request._id)}
+                    >
+                      ✅ Accept Request
                     </button>
                   ) : (
                     <button
