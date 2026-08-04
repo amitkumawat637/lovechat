@@ -304,3 +304,37 @@
 .chat-send-btn:active {
   transform: translateY(0);
 }
+.chat-body-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: filter 0.2s ease;
+}
+
+.chat-body-wrap.blurred {
+  filter: blur(14px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.screenshot-warning {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 10;
+}
+
+.seen-text {
+  font-size: 0.7rem;
+  color: #999;
+  margin: 2px 4px 8px;
+  text-align: right;
+}
