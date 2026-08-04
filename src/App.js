@@ -15,6 +15,7 @@ function App() {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [toast, setToast] = useState(null);
+  const [heroExpired, setHeroExpired] = useState(false);
   const socketRef = useRef(null);
 
   useEffect(() => {
@@ -23,6 +24,16 @@ function App() {
       setLoggedInUser(JSON.parse(savedUser));
     }
   }, []);
+
+  // Show Hero for 10 seconds after login, then switch to Profiles only
+  useEffect(() => {
+    if (loggedInUser) {
+      const timer = setTimeout(() => setHeroExpired(true), 10000);
+      return () => clearTimeout(timer);
+    } else {
+      setHeroExpired(false);
+    }
+  }, [loggedInUser]);
 
   // Load existing friend requests once logged in
   useEffect(() => {
@@ -137,7 +148,9 @@ function App() {
 
       {activeView === "home" && (
         <>
-          <Hero loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} />
+          {!heroExpired && (
+            <Hero loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} />
+          )}
           {loggedInUser && (
             <Profiles
               loggedInUser={loggedInUser}
