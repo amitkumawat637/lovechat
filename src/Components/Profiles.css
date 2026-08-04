@@ -171,3 +171,15 @@
   background: #ccc;
   cursor: not-allowed;
 }
+.requested-btn {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.accept-btn {
+  background: #2ecc71;
+}
+
+.accept-btn:hover {
+  background: #27ae60;
+}
