@@ -9,6 +9,7 @@ const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const friendRoutes = require("./routes/friendRoutes");
 const Message = require("./models/Message");
+const User = require("./models/User");
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ io.on("connection", (socket) => {
           receiver: receiverId,
           text,
           createdAt: message.createdAt,
+          seen: false,
         });
       }
     } catch (err) {
@@ -70,12 +72,44 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("disconnect", () => {
+  // Mark all messages from `senderId` to `receiverId` (me) as seen,
+  // and notify the sender live if they're online
+  socket.on("markSeen", async ({ senderId, receiverId }) => {
+    try {
+      const seenAt = new Date();
+
+      await Message.updateMany(
+        { sender: senderId, receiver: receiverId, seen: false },
+        { seen: true, seenAt }
+      );
+
+      const senderSocketId = onlineUsers[senderId];
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messagesSeen", { by: receiverId, seenAt });
+      }
+    } catch (err) {
+      console.error("Mark seen error:", err.message);
+    }
+  });
+
+  socket.on("disconnect", async () => {
+    let disconnectedUserId = null;
+
     for (const userId in onlineUsers) {
       if (onlineUsers[userId] === socket.id) {
+        disconnectedUserId = userId;
         delete onlineUsers[userId];
       }
     }
+
+    if (disconnectedUserId) {
+      try {
+        await User.findByIdAndUpdate(disconnectedUserId, { lastSeen: new Date() });
+      } catch (err) {
+        console.error("lastSeen update error:", err.message);
+      }
+    }
+
     io.emit("getOnlineUsers", Object.keys(onlineUsers));
   });
 });
