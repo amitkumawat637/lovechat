@@ -75,7 +75,7 @@ const Profiles = ({ loggedInUser, onlineUsers, onStartMessage }) => {
                 <div className="profile-photo-wrapper">
                   {user.photo ? (
                     <img
-                      src={`${API_URL}${user.photo}`}
+                      src={user.photo}
                       alt={user.fullname}
                       className="profile-photo"
                     />

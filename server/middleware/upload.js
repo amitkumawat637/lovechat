@@ -1,28 +1,18 @@
 const multer = require("multer");
-const path = require("path");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("../config/cloudinary");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueName + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "lovechat-profiles",
+    allowed_formats: ["jpeg", "jpg", "png", "webp"],
+    transformation: [{ width: 500, height: 500, crop: "limit" }],
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only image files are allowed (jpeg, png, jpg, webp)"));
-  }
-};
-
 const upload = multer({
   storage,
-  fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
 });
 

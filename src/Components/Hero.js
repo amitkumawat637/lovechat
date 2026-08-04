@@ -102,7 +102,7 @@ const Hero = ({ loggedInUser, setLoggedInUser }) => {
 
                 {loggedInUser.photo ? (
                   <img
-                    src={`${API_URL}${loggedInUser.photo}`}
+                    src={loggedInUser.photo}
                     alt={loggedInUser.fullname}
                     className="hero-img"
                   />

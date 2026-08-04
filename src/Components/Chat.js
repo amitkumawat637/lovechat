@@ -106,7 +106,7 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
         <div className="chat-header-avatar-wrap">
           {chatUser.photo ? (
             <img
-              src={`${API_URL}${chatUser.photo}`}
+              src={chatUser.photo}
               alt={chatUser.fullname}
               className="chat-header-photo"
             />

@@ -25,7 +25,10 @@ const registerUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const photoPath = req.file ? `/uploads/${req.file.filename}` : "";
+
+    // Cloudinary (via multer-storage-cloudinary) provides the full
+    // hosted image URL on req.file.path
+    const photoPath = req.file ? req.file.path : "";
 
     const newUser = new User({
       username,
@@ -63,9 +66,6 @@ const getUsers = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
-
 
 const loginUser = async (req, res) => {
   try {

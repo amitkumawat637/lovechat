@@ -1,8 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const path = require("path");
-const fs = require("fs");
 const http = require("http");
 const { Server } = require("socket.io");
 
@@ -15,12 +13,6 @@ dotenv.config();
 
 connectDB();
 
-// Ensure the uploads folder exists (Render's free tier starts with an empty filesystem)
-const uploadsDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
 const app = express();
 const server = http.createServer(app);
 
@@ -32,8 +24,6 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
-
-app.use("/uploads", express.static(uploadsDir));
 
 app.get("/", (req, res) => {
   res.send("Love Chat Backend Running...");
