@@ -30,9 +30,13 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-      photo: {
-      type: String, // stores file path/URL
+    photo: {
+      type: String,
       default: "",
+    },
+    lastSeen: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true }
