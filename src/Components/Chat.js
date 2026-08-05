@@ -8,7 +8,7 @@ const EMOJIS = [
   "😎", "🤔", "👍", "🎉", "😅", "💋", "🌸", "☺️",
 ];
 
-const MESSAGE_LIFETIME_MS = 10 * 60 * 1000; // 10 minutes
+const MESSAGE_LIFETIME_MS = 10 * 60 * 1000;
 
 const formatTime = (isoString) => {
   const date = new Date(isoString);
@@ -31,7 +31,7 @@ const formatRelative = (isoString) => {
   return "a while ago";
 };
 
-const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
+const Chat = ({ loggedInUser, chatUser, onlineUsers, socket, onBack }) => {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
@@ -104,7 +104,6 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Client-side cleanup mirroring the server's 10-minute auto-delete
   useEffect(() => {
     const interval = setInterval(() => {
       setMessages((prev) =>
@@ -118,8 +117,6 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
     return () => clearInterval(interval);
   }, []);
 
-  // Screenshot deterrent only — browsers cannot truly block OS-level
-  // screenshots. This just blurs the chat when the window loses focus.
   useEffect(() => {
     const handleBlur = () => setIsBlurred(true);
     const handleFocus = () => setIsBlurred(false);
@@ -187,6 +184,10 @@ const Chat = ({ loggedInUser, chatUser, onlineUsers, socket }) => {
       <div className="chat-bg-heart bg-heart4">💘</div>
 
       <div className="chat-header">
+        <button className="chat-back-btn" onClick={onBack} aria-label="Back to profiles">
+          ←
+        </button>
+
         <div className="chat-header-avatar-wrap">
           {chatUser.photo ? (
             <img
