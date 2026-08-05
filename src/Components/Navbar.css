@@ -134,3 +134,16 @@
 .nav-bell-accept:hover {
   background: #e63e5f;
 }
+
+
+.nav-logout-btn {
+  background: transparent;
+  color: #fff;
+  border: 2px solid #ff4b6e;
+  font-weight: 600;
+}
+
+.nav-logout-btn:hover {
+  background: #ff4b6e;
+  color: #fff;
+}
