@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Profiles.css";
 import { API_URL } from "../config";
+import ProfileDetail from "./ProfileDetail";
 
 const Profiles = ({
   loggedInUser,
@@ -9,10 +10,12 @@ const Profiles = ({
   onStartMessage,
   onSendRequest,
   onAcceptRequest,
+  onProfileUpdated,
 }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -109,7 +112,11 @@ const Profiles = ({
 
             return (
               <div className="profile-card" key={user._id}>
-                <div className="profile-photo-wrapper">
+                <div
+                  className="profile-photo-wrapper"
+                  onClick={() => setSelectedUserId(user._id)}
+                  style={{ cursor: "pointer" }}
+                >
                   {user.photo ? (
                     <img
                       src={user.photo}
@@ -174,6 +181,16 @@ const Profiles = ({
           })}
         </div>
       </div>
+
+      {selectedUserId && (
+        <ProfileDetail
+          userId={selectedUserId}
+          loggedInUser={loggedInUser}
+          friendRequests={friendRequests}
+          onClose={() => setSelectedUserId(null)}
+          onProfileUpdated={onProfileUpdated}
+        />
+      )}
     </section>
   );
 };
