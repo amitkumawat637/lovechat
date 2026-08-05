@@ -25,9 +25,6 @@ const registerUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Cloudinary (via multer-storage-cloudinary) provides the full
-    // hosted image URL on req.file.path
     const photoPath = req.file ? req.file.path : "";
 
     const newUser = new User({
@@ -62,6 +59,47 @@ const getUsers = async (req, res) => {
     const users = await User.find().select("-password").sort({ createdAt: -1 });
     res.status(200).json(users);
   } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const updateUser = async (req, res) => {
+  try {
+    const { fullname, username, password } = req.body;
+    const updateData = {};
+
+    if (fullname) updateData.fullname = fullname;
+    if (username) updateData.username = username;
+    if (password) updateData.password = await bcrypt.hash(password, 10);
+    if (req.file) updateData.photo = req.file.path;
+
+    const updated = await User.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+    }).select("-password");
+
+    if (!updated) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updated);
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({ message: "Username already taken" });
+    }
     console.error(err.message);
     res.status(500).json({ message: "Server error" });
   }
@@ -103,4 +141,4 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, getUsers, loginUser };
+module.exports = { registerUser, getUsers, getUserById, updateUser, loginUser };
