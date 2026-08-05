@@ -8,6 +8,7 @@ const Navbar = ({
   loggedInUser,
   friendRequests = [],
   onAcceptRequest,
+  onLogout,
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [showBellMenu, setShowBellMenu] = useState(false);
@@ -57,7 +58,7 @@ const Navbar = ({
                 </a>
               </li>
 
-              <li className="nav-item d-none">
+              <li className="nav-item">
                 <a
                   className={`nav-link ${activeView === "profiles" ? "active" : ""}`}
                   href="#profiles"
@@ -130,12 +131,21 @@ const Navbar = ({
               </div>
             )}
 
-            <button
-              className="btn btn-love rounded-pill px-4"
-              onClick={() => setShowModal(true)}
-            >
-              Get Started
-            </button>
+            {loggedInUser ? (
+              <button
+                className="btn nav-logout-btn rounded-pill px-4"
+                onClick={onLogout}
+              >
+                Logout
+              </button>
+            ) : (
+              <button
+                className="btn btn-love rounded-pill px-4"
+                onClick={() => setShowModal(true)}
+              >
+                Get Started
+              </button>
+            )}
           </div>
         </div>
       </nav>
