@@ -91,6 +91,13 @@ const Profiles = ({
 
   return (
     <section className="profiles-section">
+      <div className="profiles-bg-heart p-heart1">💕</div>
+      <div className="profiles-bg-heart p-heart2">❤️</div>
+      <div className="profiles-bg-heart p-heart3">💗</div>
+      <div className="profiles-bg-heart p-heart4">💘</div>
+      <div className="profiles-bg-heart p-heart5">💖</div>
+      <div className="profiles-bg-heart p-heart6">💞</div>
+
       <div className="profiles-container">
         <h2 className="profiles-heading">💕 Explore Profiles</h2>
 
