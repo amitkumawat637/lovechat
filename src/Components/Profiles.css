@@ -183,3 +183,76 @@
 .accept-btn:hover {
   background: #27ae60;
 }
+
+.profiles-section {
+  position: relative;
+  width: 100%;
+  padding: 40px 0;
+  overflow: hidden;
+  background: linear-gradient(-45deg, #fff0f3, #ffe0e9, #ffd6e8, #fbe4ff, #ffe9f0);
+  background-size: 400% 400%;
+  animation: gradientShift 18s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.profiles-bg-heart {
+  position: absolute;
+  font-size: 2.2rem;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+  animation: floatHeartSlow 9s ease-in-out infinite;
+}
+
+.p-heart1 { top: 8%; left: 5%; animation-delay: 0s; }
+.p-heart2 { top: 20%; right: 8%; font-size: 3rem; animation-delay: 1.5s; }
+.p-heart3 { top: 55%; left: 3%; animation-delay: 3s; }
+.p-heart4 { bottom: 10%; right: 6%; font-size: 2.6rem; animation-delay: 4.5s; }
+.p-heart5 { top: 40%; right: 20%; font-size: 1.8rem; animation-delay: 2s; }
+.p-heart6 { bottom: 25%; left: 15%; font-size: 2rem; animation-delay: 5.5s; }
+
+@keyframes floatHeartSlow {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-25px) rotate(10deg) scale(1.1); }
+}
+
+.profiles-container {
+  position: relative;
+  z-index: 1;
+}
+
+.profiles-heading {
+  animation: headingGlow 4s ease-in-out infinite;
+}
+
+@keyframes headingGlow {
+  0%, 100% { text-shadow: 0 0 8px rgba(255, 75, 110, 0.15); }
+  50% { text-shadow: 0 0 20px rgba(255, 75, 110, 0.4); }
+}
+
+.profile-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 182, 200, 0.4);
+  box-shadow: 0 6px 20px rgba(255, 75, 110, 0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(255, 75, 110, 0.25);
+}
+
+.profile-photo-wrapper {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.8), 0 4px 14px rgba(255, 75, 110, 0.25);
+  transition: box-shadow 0.3s ease;
+}
+
+.profile-card:hover .profile-photo-wrapper {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(255, 75, 110, 0.4);
+}
