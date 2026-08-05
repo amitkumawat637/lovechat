@@ -137,6 +137,20 @@ function App() {
     }
   };
 
+  const handleProfileUpdated = (updated) => {
+    if (!loggedInUser || loggedInUser.id !== updated._id) return;
+
+    const merged = {
+      ...loggedInUser,
+      fullname: updated.fullname,
+      username: updated.username,
+      photo: updated.photo,
+    };
+
+    setLoggedInUser(merged);
+    localStorage.setItem("loveChatUser", JSON.stringify(merged));
+  };
+
   return (
     <>
       <Navbar
@@ -165,6 +179,7 @@ function App() {
               onStartMessage={openChat}
               onSendRequest={sendFriendRequest}
               onAcceptRequest={acceptFriendRequest}
+              onProfileUpdated={handleProfileUpdated}
             />
           )}
         </>
@@ -178,6 +193,7 @@ function App() {
           onStartMessage={openChat}
           onSendRequest={sendFriendRequest}
           onAcceptRequest={acceptFriendRequest}
+          onProfileUpdated={handleProfileUpdated}
         />
       )}
 
