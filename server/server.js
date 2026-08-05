@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const friendRoutes = require("./routes/friendRoutes");
+const postRoutes = require("./routes/postRoutes");
 const Message = require("./models/Message");
 const User = require("./models/User");
 
@@ -31,16 +32,15 @@ app.get("/", (req, res) => {
   res.send("Love Chat Backend Running...");
 });
 
-// Track online users: { userId: socketId }
 let onlineUsers = {};
 
-// Make io and onlineUsers available inside REST controllers
 app.set("io", io);
 app.set("onlineUsers", onlineUsers);
 
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/requests", friendRoutes);
+app.use("/api/posts", postRoutes);
 
 io.on("connection", (socket) => {
   socket.on("addUser", (userId) => {
@@ -72,8 +72,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Mark all messages from `senderId` to `receiverId` (me) as seen,
-  // and notify the sender live if they're online
   socket.on("markSeen", async ({ senderId, receiverId }) => {
     try {
       const seenAt = new Date();
