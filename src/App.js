@@ -25,7 +25,6 @@ function App() {
     }
   }, []);
 
-  // Show Hero for 10 seconds after login, then switch to Profiles only
   useEffect(() => {
     if (loggedInUser) {
       const timer = setTimeout(() => setHeroExpired(true), 10000);
@@ -35,7 +34,6 @@ function App() {
     }
   }, [loggedInUser]);
 
-  // Load existing friend requests once logged in
   useEffect(() => {
     if (!loggedInUser) return;
 
@@ -98,6 +96,13 @@ function App() {
     setActiveView("chat");
   };
 
+  const handleLogout = () => {
+    setLoggedInUser(null);
+    localStorage.removeItem("loveChatUser");
+    setActiveView("home");
+    setChatUser(null);
+  };
+
   const sendFriendRequest = async (toUser) => {
     try {
       const res = await fetch(`${API_URL}/api/requests/send`, {
@@ -140,6 +145,7 @@ function App() {
         loggedInUser={loggedInUser}
         friendRequests={friendRequests}
         onAcceptRequest={acceptFriendRequest}
+        onLogout={handleLogout}
       />
 
       {toast && (
@@ -181,6 +187,7 @@ function App() {
           chatUser={chatUser}
           onlineUsers={onlineUsers}
           socket={socketRef.current}
+          onBack={() => setActiveView("profiles")}
         />
       )}
     </>
