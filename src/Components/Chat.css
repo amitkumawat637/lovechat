@@ -338,3 +338,21 @@
   margin: 2px 4px 8px;
   text-align: right;
 }
+.chat-back-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-right: 4px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.chat-back-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateX(-2px);
+}
